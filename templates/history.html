@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+
+{% block title %}Detection History{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div>
+
+            <h2 class="logo">
+                <i class="bi bi-camera-video"></i>
+                iDetector
+            </h2>
+
+            <nav class="nav-links">
+
+                <a href="/dashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
+
+                <a href="/webcam">
+                    <i class="bi bi-camera"></i>
+                    Webcam
+                </a>
+
+                <a href="/history" class="active">
+                    <i class="bi bi-clock-history"></i>
+                    History
+                </a>
+
+            </nav>
+
+        </div>
+
+        <a href="/logout" class="logout-btn">
+
+            <i class="bi bi-box-arrow-right"></i>
+            Logout
+
+        </a>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOPBAR -->
+        <div class="topbar d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h1 class="mb-1">
+                    Detection History
+                </h1>
+
+                <p class="mb-0 text-light">
+                    AI Surveillance Detection Records
+                </p>
+
+            </div>
+
+            <a href="/dashboard" class="btn btn-light rounded-pill px-4">
+
+                <i class="bi bi-arrow-left"></i>
+                Dashboard
+
+            </a>
+
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid mb-4">
+
+            <div class="stat-card dark">
+
+                <h5>Total Records</h5>
+
+                <h2>
+                    {{ images|length }}
+                </h2>
+
+            </div>
+
+            <div class="stat-card green">
+
+                <h5>Mask Detected</h5>
+
+                <h2>
+                    Active
+                </h2>
+
+            </div>
+
+            <div class="stat-card red">
+
+                <h5>No Mask Alerts</h5>
+
+                <h2>
+                    Monitoring
+                </h2>
+
+            </div>
+
+        </div>
+
+        <!-- SEARCH + FILTER -->
+        <div class="chart-box mb-4">
+
+            <form method="GET">
+
+                <div class="row g-3">
+
+                    <div class="col-md-8">
+
+                        <input type="text" name="search" class="form-control" placeholder="Search Mask / No Mask"
+                            value="{{ search }}">
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <button class="btn btn-primary w-100">
+
+                            <i class="bi bi-search"></i>
+                            Search Records
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- HISTORY TABLE -->
+        <div class="chart-box">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <h4 class="mb-0">
+
+                    <i class="bi bi-table"></i>
+                    Detection Records
+
+                </h4>
+
+                <span class="badge bg-primary fs-6 px-3 py-2">
+
+                    Page {{ page }}
+                    of
+                    {{ total_pages }}
+
+                </span>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle history-table">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>Image</th>
+                            <th>Result</th>
+                            <th>Confidence</th>
+                            <th>Time</th>
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% if images %}
+
+                        {% for id, img, result, confidence, time in images %}
+
+                        <tr class="history-row">
+
+                            <!-- IMAGE -->
+                            <td>
+
+                                <img src="/{{ img }}" class="history-img" alt="Detection Image"
+                                    onclick="previewImage(this.src)">
+
+                            </td>
+
+                            <!-- RESULT -->
+                            <td>
+
+                                {% if result == "Mask" %}
+
+                                <span class="badge bg-success px-3 py-2">
+
+                                    <i class="bi bi-check-circle"></i>
+                                    Mask
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-danger px-3 py-2">
+
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    No Mask
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <!-- CONFIDENCE -->
+                            <td style="width:250px;">
+
+                                <div class="progress">
+
+                                    <div class="progress-bar {{ 'bg-success' if result == 'Mask' else 'bg-danger' }}"
+                                        role="progressbar" style="width: {{ confidence }}%;">
+
+                                        {{ confidence }}%
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <!-- TIME -->
+                            <td>
+
+                                {{ time }}
+
+                            </td>
+
+                            <!-- ACTION -->
+                            <td>
+
+                                <div class="d-flex gap-2">
+
+                                    <!-- DOWNLOAD -->
+                                    <a href="/{{ img }}" download class="btn btn-primary btn-sm">
+
+                                        <i class="bi bi-download"></i>
+
+                                    </a>
+
+                                    <!-- DELETE -->
+                                    <a href="/delete-record/{{ id }}" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Delete this record?')">
+
+                                        <i class="bi bi-trash"></i>
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="5" class="text-center py-5">
+
+                                <h5 class="text-muted">
+
+                                    No Detection Records Found
+
+                                </h5>
+
+                            </td>
+
+                        </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- PAGINATION -->
+        <nav class="mt-4">
+
+            <ul class="pagination justify-content-center">
+
+                {% for p in range(1, total_pages + 1) %}
+
+                <li class="page-item {% if p == page %}active{% endif %}">
+
+                    <a class="page-link" href="/history?page={{ p }}&search={{ search }}">
+
+                        {{ p }}
+
+                    </a>
+
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+        </nav>
+
+    </main>
+
+</div>
+
+<!-- IMAGE MODAL -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content bg-dark border-0">
+
+            <div class="modal-body text-center p-3">
+
+                <img id="modalImage" class="img-fluid rounded-4">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    // IMAGE PREVIEW
+    function previewImage(src) {
+
+        document.getElementById("modalImage").src = src;
+
+        const modal = new bootstrap.Modal(
+            document.getElementById("imageModal")
+        );
+
+        modal.show();
+    }
+
+    // AUTO REFRESH EVERY 15 SECONDS
+    setInterval(() => {
+
+        location.reload();
+
+    }, 15000);
+
+</script>
+
+{% endblock %}

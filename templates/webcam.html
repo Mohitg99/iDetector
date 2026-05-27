@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Detection{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div>
+
+            <h2 class="logo">
+                <i class="bi bi-camera-video"></i>
+                iDetector
+            </h2>
+
+            <nav class="nav-links">
+
+                <a href="{{ url_for('dashboard.dashboard') }}">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('detect.webcam') }}" class="active">
+                    <i class="bi bi-camera-video"></i>
+                    Live Webcam
+                </a>
+
+                <a href="/history">
+                    <i class="bi bi-clock-history"></i>
+                    History
+                </a>
+
+                <a href="/download-report">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    PDF Report
+                </a>
+
+                <a href="/send-email">
+                    <i class="bi bi-envelope"></i>
+                    Email Report
+                </a>
+
+            </nav>
+
+        </div>
+
+        <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+
+            <i class="bi bi-box-arrow-right"></i>
+            Logout
+
+        </a>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOPBAR -->
+        <div class="topbar d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h1 class="mb-1">
+                    Live AI Surveillance
+                </h1>
+
+                <p class="mb-0 text-light">
+
+                    Real-time Face Mask Detection Monitoring System
+
+                </p>
+
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <button class="btn btn-light rounded-pill px-4" onclick="toggleFullscreen()">
+
+                    <i class="bi bi-fullscreen"></i>
+                    Fullscreen
+
+                </button>
+
+                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-dark rounded-pill px-4">
+
+                    <i class="bi bi-arrow-left"></i>
+                    Dashboard
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="row g-4">
+
+            <!-- LEFT CAMERA -->
+            <div class="col-lg-8">
+
+                <div class="camera-card">
+
+                    <!-- CAMERA HEADER -->
+                    <div class="camera-header">
+
+                        <div>
+
+                            <span class="live-dot"></span>
+
+                            <span class="fw-bold">
+                                LIVE CAMERA FEED
+                            </span>
+
+                        </div>
+
+                        <span class="badge bg-danger px-3 py-2">
+                            LIVE
+                        </span>
+
+                    </div>
+
+                    <!-- CAMERA BODY -->
+                    <div class="camera-body" id="cameraContainer">
+
+                        <img id="cameraFeed" src="{{ url_for('detect.video_feed') }}" class="webcam-feed" alt="Live Webcam Feed">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="col-lg-4">
+
+                <!-- SYSTEM STATUS -->
+                <div class="status-card mb-4">
+
+                    <h4 class="mb-4">
+                        System Status
+                    </h4>
+
+                    <div class="status-item">
+
+                        <span>Camera</span>
+
+                        <span class="badge bg-success">
+                            ONLINE
+                        </span>
+
+                    </div>
+
+                    <div class="status-item">
+
+                        <span>AI Detection</span>
+
+                        <span class="badge bg-primary">
+                            ACTIVE
+                        </span>
+
+                    </div>
+
+                    <div class="status-item">
+
+                        <span>Monitoring</span>
+
+                        <span class="badge bg-danger">
+                            LIVE
+                        </span>
+
+                    </div>
+
+                    <div class="status-item">
+
+                        <span>Alert System</span>
+
+                        <span class="badge bg-warning text-dark">
+                            ENABLED
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <!-- LIVE INFO -->
+                <div class="status-card mb-4">
+
+                    <h4 class="mb-4">
+                        Live Statistics
+                    </h4>
+
+                    <div class="live-stat">
+
+                        <h2 id="faceCount">
+                            AI
+                        </h2>
+
+                        <p>
+                            Face Detection Active
+                        </p>
+
+                    </div>
+
+                    <div class="live-stat">
+
+                        <h2 id="violationCount">
+                            LIVE
+                        </h2>
+
+                        <p>
+                            Monitoring Running
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- CONTROLS -->
+                <div class="status-card">
+                
+                    <h4 class="mb-4">
+                        Controls
+                    </h4>
+                
+                    <div class="d-grid gap-3">
+                
+                        <!-- START CAMERA -->
+                        <button class="btn btn-success" onclick="startCamera()">
+                
+                            <i class="bi bi-play-circle"></i>
+                            Start Camera
+                
+                        </button>
+                
+                        <!-- STOP CAMERA -->
+                        <button class="btn btn-danger" onclick="stopCamera()">
+                
+                            <i class="bi bi-stop-circle"></i>
+                            Stop Camera
+                
+                        </button>
+                
+                        <!-- RELOAD -->
+                        <button class="btn btn-dark" onclick="restartCamera()">
+                
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Restart System
+                
+                        </button>
+                
+                    </div>
+                
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+
+    const cameraFeed =
+        document.getElementById("cameraFeed");
+
+    // FULLSCREEN
+    function toggleFullscreen() {
+
+        const elem =
+            document.getElementById("cameraContainer");
+
+        if (!document.fullscreenElement) {
+
+            elem.requestFullscreen();
+
+        } else {
+
+            document.exitFullscreen();
+
+        }
+    }
+
+    // STOP CAMERA
+    function stopCamera() {
+
+        cameraFeed.src = "";
+
+    }
+
+    // START CAMERA
+    function startCamera() {
+
+        cameraFeed.src =
+            "{{ url_for('detect.video_feed') }}?t=" +
+            new Date().getTime();
+
+    }
+
+    // RESTART SYSTEM
+    function restartCamera() {
+
+        location.reload();
+
+    }
+
+    // LIVE STATS UPDATE
+    async function updateLiveStats() {
+
+        try {
+
+            const response =
+                await fetch("/live-stats");
+
+            const data =
+                await response.json();
+
+            document.getElementById("faceCount").innerText =
+                data.faces;
+
+            document.getElementById("violationCount").innerText =
+                data.violations;
+
+        } catch (error) {
+
+            console.log(
+                "Live stats error:",
+                error
+            );
+
+        }
+    }
+
+    // AUTO REFRESH EVERY 1 SECOND
+    setInterval(updateLiveStats, 1000);
+
+    // LOAD FIRST TIME
+    updateLiveStats();
+
+</script>
+{% endblock %}

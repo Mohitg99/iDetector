@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div>
+
+            <h2 class="logo">
+                <i class="bi bi-camera-video"></i>
+                iDetector
+            </h2>
+
+            <nav class="nav-links">
+
+                <a href="{{ url_for('dashboard.dashboard') }}" class="active">
+
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+
+                </a>
+
+                <a href="{{ url_for('detect.webcam') }}">
+
+                    <i class="bi bi-camera-video"></i>
+                    Live Webcam
+
+                </a>
+
+                <a href="{{ url_for('history.history') }}">
+
+                    <i class="bi bi-clock-history"></i>
+                    History
+
+                </a>
+
+                <a href="/download-report">
+
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    PDF Report
+
+                </a>
+
+                <a href="/send-email">
+
+                    <i class="bi bi-envelope"></i>
+                    Email Report
+
+                </a>
+
+            </nav>
+
+        </div>
+
+        <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+
+            <i class="bi bi-box-arrow-right"></i>
+            Logout
+
+        </a>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+        <div class="topbar d-flex justify-content-between align-items-center">
+
+            <h1>Dashboard Overview</h1>
+
+            <button class="btn btn-light" onclick="toggleDarkMode()">
+
+                <i class="bi bi-moon"></i>
+
+            </button>
+
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+
+            <div class="stat-card dark">
+
+                <h5>Total Violations</h5>
+
+                <h2 id="total">
+                    {{ total }}
+                </h2>
+
+            </div>
+
+            <div class="stat-card green">
+
+                <h5>Mask Detected</h5>
+
+                <h2 id="mask">
+                    {{ stats.get('Mask', 0) }}
+                </h2>
+
+            </div>
+
+            <div class="stat-card red">
+
+                <h5>No Mask</h5>
+
+                <h2 id="nomask">
+                    {{ stats.get('No Mask', 0) }}
+                </h2>
+
+            </div>
+
+        </div>
+
+        <!-- FILTER -->
+        <div class="filter-card">
+
+            <form method="POST" class="row g-3">
+
+                <div class="col-md-4">
+
+                    <input type="date" name="start" class="form-control">
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <input type="date" name="end" class="form-control">
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <button class="btn btn-primary w-100">
+
+                        Filter Data
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-grid">
+
+            <div class="chart-box">
+
+                <h5>Detection Distribution</h5>
+
+                <div class="chart-container">
+
+                    <canvas id="pieChart"></canvas>
+
+                </div>
+
+            </div>
+
+            <div class="chart-box">
+
+                <h5>Daily Violations</h5>
+
+                <div class="chart-container">
+
+                    <canvas id="lineChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- HISTORY TABLE -->
+        <div class="chart-box mt-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h4>Recent Detection History</h4>
+
+                <a href="/export-csv" class="btn btn-success me-2">
+
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                    CSV
+
+                </a>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>Image</th>
+                            <th>Result</th>
+                            <th>Confidence</th>
+                            <th>Time</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% if images %}
+
+                        {% for id, img, result, confidence, time in images %}
+
+                        <tr>
+
+                            <!-- IMAGE -->
+                            <td>
+
+                                <img src="/{{ img }}" width="80" class="rounded" alt="Detection Image">
+
+                            </td>
+
+                            <!-- RESULT -->
+                            <td>
+
+                                {% if result == "Mask" %}
+
+                                <span class="badge bg-success">
+
+                                    Mask
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-danger">
+
+                                    No Mask
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <!-- CONFIDENCE -->
+                            <td style="width:250px;">
+
+                                <div class="progress">
+
+                                    <div class="progress-bar {{ 'bg-success' if result == 'Mask' else 'bg-danger' }}"
+                                        role="progressbar" style="width: {{ confidence }}%;">
+
+                                        {{ confidence }}%
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <!-- TIME -->
+                            <td>
+
+                                {{ time }}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="4" class="text-center py-4">
+
+                                <span class="text-muted">
+
+                                    No Detection Records Available
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- IMAGE CARDS -->
+        <div class="row mt-4" id="imageContainer">
+
+            {% if images %}
+
+            {% for id, img, result, confidence, time in images %}
+
+            <div class="col-lg-4 col-md-6 mb-4">
+
+                <div class="card shadow border-0 rounded-4 overflow-hidden">
+
+                    <img src="/{{ img }}" class="card-img-top dashboard-img" alt="Detection Image">
+
+                    <div class="card-body text-center">
+
+                        <h5 class="{{ 'text-success' if result == 'Mask' else 'text-danger' }}">
+
+                            {{ result }}
+
+                        </h5>
+
+                        <p>
+
+                            Confidence: {{ confidence }}%
+
+                        </p>
+
+                        <small class="text-muted">
+
+                            {{ time }}
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+            {% endif %}
+
+        </div>
+
+    </main>
+
+</div>
+
+<!-- CHART DATA -->
+<script>
+
+    const resultData = {{ result_data | tojson }};
+    const dailyData = {{ daily_data | tojson }};
+
+</script>
+
+<!-- DASHBOARD JS -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+{% endblock %}
